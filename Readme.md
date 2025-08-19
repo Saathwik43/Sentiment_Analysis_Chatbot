@@ -4,6 +4,8 @@
 
 A beginner-friendly **Streamlit-based** sentiment analysis chatbot that analyzes text sentiment using natural language processing. This project is perfect for learning NLP basics, interactive dashboard development, and data visualization.
 
+##live demo : https://sentimentanalysischatbot.streamlit.app/
+
 ## 🌟 Real-World Applications
 
 * **Customer Feedback Analysis**: Automatically analyze customer reviews and feedback.
