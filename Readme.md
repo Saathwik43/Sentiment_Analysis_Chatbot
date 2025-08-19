@@ -1,4 +1,4 @@
-# Sentiment Analysis Chatbot - Easy Level Project
+# Sentiment Analysis Chatbot
 
 ## 🎯 Project Overview
 A beginner-friendly GUI-based sentiment analysis chatbot that analyzes text sentiment using natural language processing. This project is perfect for learning NLP basics and GUI development.
@@ -93,4 +93,3 @@ This project demonstrates:
 - Implement API integration for real-time data
 
 ---
-**Created for Portfolio Development - Easy Level Project**
