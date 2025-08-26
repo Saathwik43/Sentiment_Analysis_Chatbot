@@ -6,13 +6,58 @@ import numpy as np
 from datetime import datetime
 import json
 import os
+import plotly.graph_objects as go
+import plotly.express as px
 
 # Page config
 st.set_page_config(
     page_title="🤖 Sentiment Analysis Chatbot",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+# Custom CSS for modern styling
+st.markdown("""
+<style>
+    .main-header {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: white;
+    }
+    .metric-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+    }
+    .analysis-container {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    .stTextArea > div > div > textarea {
+        border-radius: 10px;
+        border: 2px solid #e1e5e9;
+    }
+    .stButton > button {
+        border-radius: 20px;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+</style>
+""", unsafe_allow_html=True)
 
 class StreamlitSentimentAnalyzer:
     def __init__(self):
@@ -161,84 +206,114 @@ def main():
     # Initialize analyzer
     analyzer = StreamlitSentimentAnalyzer()
     
-    # Title and header
-    st.title("🤖 Sentiment Analysis Chatbot")
-    st.markdown("---")
+    # Modern header
+    st.markdown("""
+    <div class="main-header">
+        <h1>🤖 AI Sentiment Analysis</h1>
+        <p>Analyze emotions and opinions in text with advanced NLP</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Sidebar for history and settings
+    # Modern sidebar
     with st.sidebar:
-        st.header("📊 Dashboard")
+        st.markdown("### 📊 Analytics Dashboard")
         
-        if st.button("📈 View History Chart"):
+        # Quick stats
+        if 'analysis_history' in st.session_state and st.session_state.analysis_history:
+            total_analyses = len(st.session_state.analysis_history)
+            recent_sentiment = st.session_state.analysis_history[-1]['sentiment'] if st.session_state.analysis_history else "None"
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Total", total_analyses)
+            with col2:
+                st.metric("Latest", recent_sentiment.split()[0])
+        
+        st.markdown("---")
+        
+        if st.button("📈 View Analytics", use_container_width=True):
             if 'analysis_history' in st.session_state and st.session_state.analysis_history:
                 st.session_state.show_history = True
             else:
                 st.info("No analysis history available!")
         
-        if st.button("🗑️ Clear History"):
+        if st.button("🗑️ Clear History", use_container_width=True):
             st.session_state.analysis_history = []
             if os.path.exists('sentiment_history.json'):
                 os.remove('sentiment_history.json')
             st.success("History cleared!")
-    
-    # Main input section
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("📝 Text Input")
-        user_text = st.text_area(
-            "Enter your text for sentiment analysis:",
-            height=150,
-            placeholder="Type your text here... (reviews, feedback, social media posts, etc.)"
-        )
-        
-        col_btn1, col_btn2, col_btn3 = st.columns(3)
-        
-        with col_btn1:
-            analyze_button = st.button("🔍 Analyze Sentiment", type="primary")
-        
-        with col_btn2:
-            if st.button("🗑️ Clear Text"):
-                st.rerun()
-        
-        with col_btn3:
-            if st.button("📋 Sample Text"):
-                st.session_state.sample_text = True
-    
-    with col2:
-        st.subheader("ℹ️ Instructions")
+            
+        st.markdown("---")
+        st.markdown("### 💡 Quick Tips")
         st.info("""
-        **How to use:**
-        1. Enter any text in the input area
-        2. Click 'Analyze Sentiment'
-        3. View detailed results below
-        4. Check history in sidebar
-        
-        **Best for:**
-        - Customer reviews
-        - Social media posts
-        - Feedback analysis
-        - Survey responses
+        **Best Results:**
+        • Use complete sentences
+        • Include context
+        • Try different text types
         """)
     
-    # Sample text functionality
+    # Modern input section
+    st.markdown("### 📝 Text Analysis")
+    
+    # Initialize user_text
+    default_text = ""
+    if 'selected_sample' in st.session_state:
+        default_text = st.session_state.selected_sample
+        del st.session_state.selected_sample
+    
+    # Input container
+    with st.container():
+        user_text = st.text_area(
+            "Enter your text for sentiment analysis:",
+            value=default_text,
+            height=120,
+            placeholder="✨ Paste your text here... (reviews, feedback, social media posts, etc.)",
+            help="Enter any text to analyze its emotional tone and subjectivity"
+        )
+        
+        # Action buttons in a clean row
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+        
+        with col1:
+            analyze_button = st.button("🚀 Analyze Sentiment", type="primary", use_container_width=True)
+        with col2:
+            if st.button("🔄 Clear", use_container_width=True):
+                st.rerun()
+        with col3:
+            if st.button("📋 Sample", use_container_width=True):
+                st.session_state.sample_text = True
+        with col4:
+            st.button("💡 Help", use_container_width=True, help="Tips: Use complete sentences for better accuracy")
+    
+    # Enhanced sample text functionality
     if 'sample_text' in st.session_state and st.session_state.sample_text:
-        sample_texts = [
-            "I absolutely love this product! It exceeded my expectations.",
-            "This service was terrible and the staff was rude.",
-            "The weather forecast indicates rain tomorrow.",
-            "I'm feeling okay about this decision, not great but not bad either."
-        ]
-        selected_sample = st.selectbox("Choose a sample text:", sample_texts)
-        if st.button("Use This Sample"):
-            st.session_state.selected_sample = selected_sample
-            st.session_state.sample_text = False
-            st.rerun()
+        st.markdown("#### 📋 Sample Texts")
+        sample_texts = {
+            "😊 Positive Review": "I absolutely love this product! It exceeded my expectations and the customer service was amazing.",
+            "😞 Negative Feedback": "This service was terrible and the staff was completely unhelpful and rude.",
+            "😐 Neutral Statement": "The weather forecast indicates rain tomorrow with temperatures around 20 degrees.",
+            "🤔 Mixed Opinion": "I'm feeling okay about this decision, not great but not bad either. It has pros and cons."
+        }
+        
+        selected_key = st.selectbox("Choose a sample:", list(sample_texts.keys()))
+        st.text_area("Preview:", sample_texts[selected_key], height=60, disabled=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Use This Sample", use_container_width=True):
+                st.session_state.selected_sample = sample_texts[selected_key]
+                st.session_state.sample_text = False
+                st.rerun()
+        with col2:
+            if st.button("❌ Cancel", use_container_width=True):
+                st.session_state.sample_text = False
+                st.rerun()
     
     # Use selected sample text
     if 'selected_sample' in st.session_state:
         user_text = st.session_state.selected_sample
         del st.session_state.selected_sample
+        st.rerun()
     
     # Analysis section
     if analyze_button and user_text.strip():
@@ -252,10 +327,10 @@ def main():
                 # Get detailed analysis
                 details = analyzer.create_detailed_analysis(user_text, polarity, subjectivity, sentiment_label)
                 
-                st.markdown("---")
-                st.subheader("📊 Analysis Results")
+                # Modern results section
+                st.markdown("### 📊 Analysis Results")
                 
-                # Main results in columns
+                # Main results with modern cards
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
@@ -279,115 +354,150 @@ def main():
                         delta="Range: 0 to 1"
                     )
                 
-                # Detailed breakdown
-                st.subheader("🔍 Detailed Breakdown")
+                # Enhanced detailed breakdown
+                st.markdown("### 🔍 Detailed Analysis")
                 
-                col1, col2 = st.columns(2)
+                # Create tabs for better organization
+                tab1, tab2, tab3 = st.tabs(["📊 Statistics", "💡 Insights", "📈 Visualization"])
                 
-                with col1:
-                    st.markdown("**📊 Basic Statistics:**")
-                    stats_df = pd.DataFrame({
-                        'Metric': ['Word Count', 'Character Count', 'Estimated Sentences'],
-                        'Value': [details['word_count'], details['char_count'], details['sentence_count']]
-                    })
-                    st.dataframe(stats_df, hide_index=True)
+                with tab1:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("**Text Statistics**")
+                        stats_data = {
+                            "📝 Words": details['word_count'],
+                            "🔤 Characters": details['char_count'],
+                            "📄 Sentences": details['sentence_count']
+                        }
+                        for key, value in stats_data.items():
+                            st.metric(key, value)
                     
-                    st.markdown("**🎯 Sentiment Details:**")
-                    st.info(f"**Subjectivity Type:** {details['subjectivity_desc']}")
+                    with col2:
+                        st.markdown("**Sentiment Profile**")
+                        st.info(f"**Type:** {details['subjectivity_desc']}")
+                        st.info(f"**Strength:** {details['strength_desc']}")
                 
-                with col2:
-                    st.markdown("**💡 Interpretation:**")
+                with tab2:
+                    st.markdown("**🎯 Interpretation**")
                     st.write(f"**Polarity:** {analyzer.interpret_polarity(polarity)}")
                     st.write(f"**Subjectivity:** {analyzer.interpret_subjectivity(subjectivity)}")
                     
-                    st.markdown("**📈 Business Insights:**")
+                    st.markdown("**💼 Business Insights**")
                     insights = analyzer.generate_business_insights(polarity, subjectivity)
                     st.success(insights)
                 
-                # Visualization
-                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+                with tab3:
+                    # Modern gauge charts using Plotly
+                    fig_polarity = go.Figure(go.Indicator(
+                        mode = "gauge+number+delta",
+                        value = polarity,
+                        domain = {'x': [0, 1], 'y': [0, 1]},
+                        title = {'text': "Polarity Score"},
+                        delta = {'reference': 0},
+                        gauge = {
+                            'axis': {'range': [-1, 1]},
+                            'bar': {'color': color},
+                            'steps': [
+                                {'range': [-1, -0.1], 'color': "#ffcccc"},
+                                {'range': [-0.1, 0.1], 'color': "#fff2cc"},
+                                {'range': [0.1, 1], 'color': "#ccffcc"}
+                            ],
+                            'threshold': {
+                                'line': {'color': "red", 'width': 4},
+                                'thickness': 0.75,
+                                'value': 0
+                            }
+                        }
+                    ))
+                    fig_polarity.update_layout(height=400, margin=dict(l=20, r=20, t=40, b=20))
+                    st.plotly_chart(fig_polarity, use_container_width=True)
+                    
+                    fig_subjectivity = go.Figure(go.Indicator(
+                        mode = "gauge+number",
+                        value = subjectivity,
+                        domain = {'x': [0, 1], 'y': [0, 1]},
+                        title = {'text': "Subjectivity Score"},
+                        gauge = {
+                            'axis': {'range': [0, 1]},
+                            'bar': {'color': "#2196F3"},
+                            'steps': [
+                                {'range': [0, 0.4], 'color': "#e3f2fd"},
+                                {'range': [0.4, 0.7], 'color': "#bbdefb"},
+                                {'range': [0.7, 1], 'color': "#90caf9"}
+                            ]
+                        }
+                    ))
+                    fig_subjectivity.update_layout(height=400, margin=dict(l=20, r=20, t=40, b=20))
+                    st.plotly_chart(fig_subjectivity, use_container_width=True)
                 
-                # Polarity gauge
-                ax1.barh(['Polarity'], [polarity], color=color, alpha=0.7)
-                ax1.set_xlim(-1, 1)
-                ax1.axvline(x=0, color='gray', linestyle='--', alpha=0.7)
-                ax1.set_title('Polarity Score', fontweight='bold')
-                ax1.set_xlabel('Score')
-                
-                # Subjectivity gauge
-                ax2.barh(['Subjectivity'], [subjectivity], color='#2196F3', alpha=0.7)
-                ax2.set_xlim(0, 1)
-                ax2.set_title('Subjectivity Score', fontweight='bold')
-                ax2.set_xlabel('Score')
-                
-                plt.tight_layout()
-                st.pyplot(fig)
-                
-                st.success(f"✅ Analysis complete! Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                # Success message with modern styling
+                st.success(f"✅ Analysis completed at {datetime.now().strftime('%H:%M:%S')}")
     
     elif analyze_button and not user_text.strip():
         st.warning("⚠️ Please enter some text to analyze!")
     
-    # History chart section
+    # Modern analytics dashboard
     if 'show_history' in st.session_state and st.session_state.show_history:
-        st.markdown("---")
-        st.subheader("📈 Sentiment Analysis History")
+        st.markdown("### 📈 Analytics Dashboard")
         
         if 'analysis_history' in st.session_state and st.session_state.analysis_history:
-            history = st.session_state.analysis_history[-20:]  # Last 20 entries
-            
-            # Prepare data
+            history = st.session_state.analysis_history[-20:]
             polarities = [entry['polarity'] for entry in history]
-            timestamps = [entry['timestamp'][:10] for entry in history]  # Date only
             
-            # Create charts
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+            # Modern interactive charts with Plotly
+            col1, col2 = st.columns(2)
             
-            # Polarity trend
-            ax1.plot(range(len(polarities)), polarities, 'bo-', linewidth=2, markersize=6)
-            ax1.axhline(y=0, color='gray', linestyle='--', alpha=0.7)
-            ax1.set_title('Sentiment Polarity Over Time', fontsize=14, fontweight='bold')
-            ax1.set_ylabel('Polarity Score')
-            ax1.set_xlabel('Analysis Number')
-            ax1.grid(True, alpha=0.3)
-            ax1.set_ylim(-1.1, 1.1)
+            with col1:
+                # Trend line chart
+                fig_trend = px.line(
+                    x=range(len(polarities)), 
+                    y=polarities,
+                    title="Sentiment Trend",
+                    labels={'x': 'Analysis #', 'y': 'Polarity Score'}
+                )
+                fig_trend.add_hline(y=0, line_dash="dash", line_color="gray")
+                fig_trend.update_layout(height=400)
+                st.plotly_chart(fig_trend, use_container_width=True)
             
-            # Sentiment distribution
-            positive = sum(1 for p in polarities if p > 0.1)
-            negative = sum(1 for p in polarities if p < -0.1)
-            neutral = len(polarities) - positive - negative
+            with col2:
+                # Distribution pie chart
+                positive = sum(1 for p in polarities if p > 0.1)
+                negative = sum(1 for p in polarities if p < -0.1)
+                neutral = len(polarities) - positive - negative
+                
+                fig_pie = px.pie(
+                    values=[positive, neutral, negative],
+                    names=['Positive', 'Neutral', 'Negative'],
+                    title="Sentiment Distribution",
+                    color_discrete_sequence=['#4CAF50', '#FF9800', '#f44336']
+                )
+                fig_pie.update_layout(height=400)
+                st.plotly_chart(fig_pie, use_container_width=True)
             
-            labels = ['Positive', 'Neutral', 'Negative']
-            sizes = [positive, neutral, negative]
-            colors = ['#4CAF50', '#FF9800', '#f44336']
-            
-            ax2.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
-            ax2.set_title('Sentiment Distribution', fontsize=14, fontweight='bold')
-            
-            plt.tight_layout()
-            st.pyplot(fig)
-            
-            # Summary statistics
+            # Summary metrics
             avg_polarity = np.mean(polarities)
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.metric("Total Analyses", len(st.session_state.analysis_history))
+                st.metric("📊 Total", len(st.session_state.analysis_history))
             with col2:
-                st.metric("Average Polarity", f"{avg_polarity:.3f}")
+                st.metric("📈 Avg Polarity", f"{avg_polarity:.3f}")
             with col3:
-                st.metric("Positive %", f"{positive/len(polarities)*100:.1f}%")
+                st.metric("😊 Positive", f"{positive/len(polarities)*100:.1f}%")
             with col4:
-                st.metric("Negative %", f"{negative/len(polarities)*100:.1f}%")
+                st.metric("😞 Negative", f"{negative/len(polarities)*100:.1f}%")
             
-            # Recent history table
-            st.subheader("📋 Recent Analysis History")
+            # Recent history with modern styling
+            st.markdown("#### 📋 Recent Analyses")
             history_df = pd.DataFrame(history).tail(10)
-            history_df['timestamp'] = pd.to_datetime(history_df['timestamp']).dt.strftime('%Y-%m-%d %H:%M')
-            st.dataframe(history_df[['timestamp', 'text', 'sentiment', 'polarity', 'subjectivity']], 
-                        use_container_width=True)
+            history_df['timestamp'] = pd.to_datetime(history_df['timestamp']).dt.strftime('%m-%d %H:%M')
+            st.dataframe(
+                history_df[['timestamp', 'text', 'sentiment', 'polarity', 'subjectivity']], 
+                use_container_width=True,
+                hide_index=True
+            )
         
-        if st.button("❌ Close History"):
+        if st.button("❌ Close Analytics", use_container_width=True):
             st.session_state.show_history = False
             st.rerun()
 
