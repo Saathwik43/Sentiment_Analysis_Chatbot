@@ -10,7 +10,7 @@ import os
 # Page config
 st.set_page_config(
     page_title="🤖 Sentiment Analysis Chatbot",
-    page_icon="🤖",
+    
     layout="wide"
 )
 

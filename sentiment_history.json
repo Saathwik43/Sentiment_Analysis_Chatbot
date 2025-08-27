@@ -5,5 +5,12 @@
     "polarity": 0.625,
     "subjectivity": 0.6,
     "sentiment": "Positive \ud83d\ude0a"
+  },
+  {
+    "timestamp": "2025-08-27T09:04:03.555766",
+    "text": "Happy vinayaka chavithi!",
+    "polarity": 1.0,
+    "subjectivity": 1.0,
+    "sentiment": "Positive \ud83d\ude0a"
   }
 ]
